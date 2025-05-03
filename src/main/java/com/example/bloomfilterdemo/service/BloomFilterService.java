@@ -1,70 +1,120 @@
 package com.example.bloomfilterdemo.service;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
+import java.util.BitSet;
 
 @Service
 public class BloomFilterService {
 
-    private static final int SIZE = 10000;
+    @Value("${bloom.filter.size:10000}")
+    private int size;
 
-    // Using an array to represent the Bloom Filter's bit array
-    private final int[] bitArray = new int[SIZE];
+    @Value("${bloom.filter.file.path:bitArray.txt}")
+    private String filePath;
 
-    private final File file = new File("bitArray.txt");  // New file to store the bit array
+    @Value("${bloom.filter.hash.functions:4}")
+    private int numHashFunctions;
+
+    // Using BitSet for more efficient storage
+    private BitSet bitSet;
+
+    private File file;
 
     @PostConstruct
     public void init() throws IOException {
+        bitSet = new BitSet(size);
+        file = new File(filePath);
+
         if (file.exists()) {
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 String line = reader.readLine();
-                if (line != null) {
+                if (line != null && line.length() >= size) {
                     // Load the bit array from the file (it's represented as a string of 0s and 1s)
-                    for (int i = 0; i < SIZE; i++) {
-                        bitArray[i] = line.charAt(i) == '1' ? 1 : 0;
+                    for (int i = 0; i < size; i++) {
+                        if (line.charAt(i) == '1') {
+                            bitSet.set(i);
+                        }
                     }
                 }
             }
         } else {
             boolean created = file.createNewFile();
-            if (!created) throw new IOException("Failed to create bitArray.txt");
+            if (!created) throw new IOException("Failed to create " + filePath);
+            // Initialize the file with zeros
+            saveToFile();
         }
     }
 
-    private int hash1(String input) {
-        return Math.abs(input.hashCode()) % SIZE;
-    }
+    private int[] getHashValues(String input) {
+        int[] hashes = new int[numHashFunctions];
 
-    private int hash2(String input) {
-        return Math.abs((input + "salt").hashCode()) % SIZE;
+        // First two hash functions remain the same
+        hashes[0] = Math.abs(input.hashCode()) % size;
+        hashes[1] = Math.abs((input + "salt").hashCode()) % size;
+
+        // Additional hash functions for better distribution
+        if (numHashFunctions > 2) {
+            hashes[2] = Math.abs((input + "pepper").hashCode()) % size;
+        }
+        if (numHashFunctions > 3) {
+            hashes[3] = Math.abs((input + "sugar").hashCode()) % size;
+        }
+
+        return hashes;
     }
 
     private void addToBitArray(String name) {
-        bitArray[hash1(name)] = 1;
-        bitArray[hash2(name)] = 1;
+        if (name == null) {
+            throw new IllegalArgumentException("Name cannot be null");
+        }
+
+        int[] hashes = getHashValues(name);
+        for (int hash : hashes) {
+            bitSet.set(hash);
+        }
     }
 
     private boolean mightContain(String name) {
-        return bitArray[hash1(name)] == 1 && bitArray[hash2(name)] == 1;
+        if (name == null) {
+            return false;
+        }
+
+        int[] hashes = getHashValues(name);
+        for (int hash : hashes) {
+            if (!bitSet.get(hash)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public boolean checkOrAddName(String name) {
         boolean exists = mightContain(name);
         if (!exists) {
             addToBitArray(name);
-            // Persist the updated bit array to the file (as a string of 0s and 1s)
-            try (FileWriter fw = new FileWriter(file)) {
-                StringBuilder sb = new StringBuilder();
-                for (int i = 0; i < SIZE; i++) {
-                    sb.append(bitArray[i]);
-                }
-                fw.write(sb.toString());
-            } catch (IOException e) {
-                throw new RuntimeException("Failed to write to file", e);
-            }
+            saveToFile();
         }
         return exists;
+    }
+
+    private void saveToFile() {
+        try (FileWriter fw = new FileWriter(file)) {
+            StringBuilder sb = new StringBuilder(size);
+            for (int i = 0; i < size; i++) {
+                sb.append(bitSet.get(i) ? '1' : '0');
+            }
+            fw.write(sb.toString());
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to write to file", e);
+        }
+    }
+
+    public void clear() {
+        bitSet.clear();
+        saveToFile();
     }
 }
