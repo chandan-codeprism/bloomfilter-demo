@@ -8,7 +8,8 @@ A Bloom Filter is a space-efficient probabilistic data structure that is used to
 
 ## Features
 
-- RESTful API for interacting with a Bloom Filter
+- Web UI for interactive demonstration of the Bloom Filter
+- RESTful API for programmatic interaction with the Bloom Filter
 - Configurable Bloom Filter size and number of hash functions
 - Persistent storage of the Bloom Filter state
 - Efficient implementation using BitSet
@@ -85,6 +86,29 @@ bloom.filter.hash.functions=4
 
 The application will be available at `http://localhost:8080`.
 
+## Web UI
+
+The application includes a web-based user interface for interacting with the Bloom Filter. The UI is built using Thymeleaf templates and Bootstrap for styling.
+
+### Accessing the Web UI
+
+After starting the application, navigate to `http://localhost:8080` in your web browser. You will be automatically redirected to the Bloom Filter UI.
+
+### Features of the Web UI
+
+- **Check/Add Names**: Enter a name in the input field and click the "Check/Add Name" button. The UI will display whether the name might already exist in the Bloom Filter or if it was added.
+- **Clear Bloom Filter**: Click the "Clear Bloom Filter" button to remove all entries from the Bloom Filter.
+- **Visual Feedback**: The UI provides visual feedback with different colors to indicate whether a name might already exist (yellow) or was added (green).
+
 ## Implementation Details
 
 The Bloom Filter is implemented using Java's BitSet for efficient storage. It uses multiple hash functions to reduce the probability of false positives. The state of the Bloom Filter is persisted to a file, so it survives application restarts.
+
+## Dependencies
+
+The application uses the following dependencies:
+
+- Spring Boot Web: For creating the RESTful API
+- Spring Boot Thymeleaf: For server-side HTML templating
+- Bootstrap (via WebJars): For styling the web UI
+- jQuery (via WebJars): For JavaScript functionality in the web UI

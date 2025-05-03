@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bloom Filter Demo</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.2/css/bootstrap.min.css}">
+    <style>
+        .result-box {
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row">
+            <div class="col-md-8 offset-md-2">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h2 class="text-center">Bloom Filter Demonstration</h2>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <p>A Bloom Filter is a space-efficient probabilistic data structure used to test whether an element is a member of a set.</p>
+                            <p>False positives are possible, but false negatives are not. In other words, a query returns either "possibly in set" or "definitely not in set".</p>
+                        </div>
+                        
+                        <form id="checkNameForm" th:action="@{/bloom-filter/check-name}" method="post" class="mt-4">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Enter a name to check or add:</label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Check/Add Name</button>
+                        </form>
+                        
+                        <div th:if="${message}" class="result-box mt-3 p-3" th:classappend="${exists} ? 'warning' : 'success'">
+                            <p class="mb-0" th:text="${message}"></p>
+                        </div>
+                        
+                        <form th:action="@{/bloom-filter/clear}" method="post" class="mt-4">
+                            <button type="submit" class="btn btn-danger">Clear Bloom Filter</button>
+                        </form>
+                        
+                        <div th:if="${cleared}" class="alert alert-success mt-3">
+                            <p class="mb-0">Bloom Filter has been cleared successfully.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS and dependencies -->
+    <script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+    <script th:src="@{/webjars/bootstrap/5.3.2/js/bootstrap.bundle.min.js}"></script>
+</body>
+</html>
