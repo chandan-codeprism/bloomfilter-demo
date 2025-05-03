@@ -52,7 +52,7 @@ public class BloomFilterService {
     private int[] getHashValues(String input) {
         int[] hashes = new int[numHashFunctions];
 
-        // First two hash functions remain the same
+        // The First two hash functions remain the same
         hashes[0] = Math.abs(input.hashCode()) % size;
         hashes[1] = Math.abs((input + "salt").hashCode()) % size;
 
